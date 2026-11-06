@@ -83,6 +83,34 @@ assert.equal(parsed.report.local.sessions, 2, 'fixture sessions')
 assert.equal(parsed.report.local.turns, 4, 'fixture turns')
 assert.ok(Math.abs(parsed.report.local.costUsd - 2.52) < 0.0001, 'fixture cost')
 
+// A fresh period can omit creditUsagePercent entirely. The TUI shows that as
+// 0%, and the widget must keep the new snapshot instead of showing "—".
+const zeroHome = fs.mkdtempSync(path.join(os.tmpdir(), 'grok-home-zero-'))
+try {
+  fs.cpSync(fixture, zeroHome, { recursive: true })
+  const zeroLog = path.join(zeroHome, 'logs', 'unified.jsonl')
+  const zeroLines = fs.readFileSync(zeroLog, 'utf8').trim().split('\n').map(function(line) {
+    const row = JSON.parse(line)
+    if (row.msg === 'billing: fetched credits config') {
+      row.ts = iso(now)
+      row.ctx.config.currentPeriod.start = periodStart
+      row.ctx.config.currentPeriod.end = periodEnd
+      delete row.ctx.config.creditUsagePercent
+    }
+    return JSON.stringify(row)
+  })
+  fs.writeFileSync(zeroLog, zeroLines.join('\n') + '\n')
+  const zeroRaw = execFileSync(process.execPath, [
+    path.join(repo, 'scripts', 'collect.js'),
+    '--home', zeroHome
+  ], { encoding: 'utf8' })
+  const zero = context.parseResult(zeroRaw)
+  assert.ok(zero && zero.ok, 'zero-usage snapshot should parse')
+  assert.equal(zero.report.weekly.percent, 0, 'missing creditUsagePercent means 0%')
+} finally {
+  fs.rmSync(zeroHome, { recursive: true, force: true })
+}
+
 const windows = context.windows(parsed.report, 70, 90)
 assert.equal(windows.length, 1)
 assert.equal(windows[0].key, 'weekly')

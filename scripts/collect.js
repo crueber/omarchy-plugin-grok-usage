@@ -111,7 +111,11 @@ function parseConfig(message) {
   const used = num(config.creditUsagePercent)
   const period = config.currentPeriod && typeof config.currentPeriod === 'object'
     ? config.currentPeriod : null
-  if (used === null || !period) return null
+  if (!period) return null
+  // The server omits creditUsagePercent at the start of a fresh period; the
+  // TUI renders that as 0%, so treat an absent value as zero rather than
+  // discarding the new snapshot.
+  const usedPercent = used === null ? 0 : used
 
   const startMs = Date.parse(period.start || '')
   const endMs = Date.parse(period.end || '')
@@ -128,7 +132,7 @@ function parseConfig(message) {
     unified: config.isUnifiedBillingUser === true,
     snapshotAt: Math.max(0, Date.parse(message.ts || '') || 0),
     weekly: {
-      usedPercent: Math.max(0, Math.min(100, used)),
+      usedPercent: Math.max(0, Math.min(100, usedPercent)),
       periodType: text(period.type, 60),
       periodStart: Number.isFinite(startMs) ? startMs : 0,
       resetsAt: endMs,

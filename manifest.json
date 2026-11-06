@@ -2,17 +2,26 @@
   "schemaVersion": 1,
   "id": "crueber.grok-usage",
   "name": "Grok Usage",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "Chris Rueber",
   "license": "MIT",
   "description": "Grok plan allowance in the Omarchy bar: the official Grok mark with the current limit meter, plus a popup with the percentage, reset clock, plan tier, billing amounts, and local session activity. Reads the snapshot Grok already writes locally; no API key or network request.",
-  "kinds": ["bar-widget"],
-  "entryPoints": { "barWidget": "Panel.qml" },
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "Panel.qml"
+  },
   "barWidget": {
     "displayName": "Grok Usage",
     "description": "Bar pill with the Grok mark and the plan meter; click for percentage, reset time, tier, billing amounts, and local activity.",
     "category": "AI",
-    "aliases": ["grok", "grok-usage", "supergrok", "xai"],
+    "aliases": [
+      "grok",
+      "grok-usage",
+      "supergrok",
+      "xai"
+    ],
     "allowMultiple": false,
     "defaultSection": "right",
     "defaults": {
@@ -33,7 +42,11 @@
         "key": "barStyle",
         "type": "enum",
         "label": "Bar shows",
-        "options": ["bars", "text", "icon"],
+        "options": [
+          "bars",
+          "text",
+          "icon"
+        ],
         "defaultValue": "bars",
         "description": "bars: the mark plus the limit meter; text: the percentage; icon: just the mark."
       },
