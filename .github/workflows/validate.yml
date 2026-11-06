@@ -17,4 +17,4 @@ jobs:
       - name: Test model parsing and cache round-trip
         run: node scripts/test-model.js
       - name: Shellcheck scripts
-        run: shellcheck scripts/*.sh
+        run: shellcheck scripts/*.sh demo/*.sh

@@ -95,7 +95,8 @@ prepare_workdir() {
 
   shots="$work/shots"
   backup="$work/backup"
-  mkdir -p -m 700 -- "$shots" "$backup" || die "cannot create capture directories"
+  [[ -e $shots ]] || mkdir -m 700 -- "$shots" || die "cannot create $shots"
+  [[ -e $backup ]] || mkdir -m 700 -- "$backup" || die "cannot create $backup"
   local dir
   for dir in "$shots" "$backup"; do
     [[ -d $dir && ! -L $dir ]] || die "unsafe capture directory: $dir"
