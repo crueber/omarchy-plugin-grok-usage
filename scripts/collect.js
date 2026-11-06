@@ -39,6 +39,15 @@ function homeDir() {
   return home ? path.join(home, '.grok') : ''
 }
 
+function botHomeDir() {
+  const explicit = argValue('--bot-home')
+  if (explicit) return explicit
+  const env = process.env.GROK_BOT_HOME || ''
+  if (env) return env
+  const config = process.env.XDG_CONFIG_HOME || path.join(process.env.HOME || '', '.config')
+  return config ? path.join(config, 'Grok Bot', 'sand-client-persistence') : ''
+}
+
 function text(value, max) {
   if (typeof value !== 'string') return ''
   return value.slice(0, max || 240)
@@ -144,6 +153,63 @@ function parseConfig(message) {
       prepaid: Math.max(0, amount(config.prepaidBalance) || 0)
     }
   }
+}
+
+// Grok Bot keeps its own weekly allowance, separate from the Grok plan pool.
+// The desktop app caches the `bot.usage` reading under its Electron
+// persistence directory. Read the newest small JSON blob that carries
+// percentUsed/nextResetMs; never touch the browser session or any token.
+function readBotUsage(root) {
+  if (!root) return null
+  let names
+  try {
+    names = fs.readdirSync(root)
+  } catch (e) {
+    return null
+  }
+
+  let best = null
+  for (const name of names) {
+    if (!name.endsWith('.blob')) continue
+    const file = path.join(root, name)
+    let stat
+    try {
+      stat = fs.statSync(file)
+    } catch (e) {
+      continue
+    }
+    if (!stat.isFile() || stat.size > 65536) continue
+
+    let doc
+    try {
+      doc = JSON.parse(fs.readFileSync(file, 'utf8'))
+    } catch (e) {
+      continue
+    }
+
+    const reading = doc && doc.value && doc.value.reading
+    const usage = reading && reading.usage
+    if (!usage || typeof usage !== 'object') continue
+
+    const pct = num(usage.percentUsed)
+    const reset = num(usage.nextResetMs)
+    const readAt = num(reading.readAtMs) || stat.mtimeMs
+    if (pct === null || reset === null || !readAt) continue
+
+    const candidate = {
+      percent: Math.max(0, Math.min(100, pct)),
+      resetsAt: reset,
+      readAt: readAt,
+      expiresAt: num(doc.value.expiresAtMs) || 0,
+      plan: text(usage.grokPlanLabel, 60),
+      trial: usage.isSandTrial === true,
+      teamSeat: usage.isTeamSeat === true,
+      hasIncluded: usage.hasNonZeroIncludedLimit !== false,
+      source: 'grok-bot-cache'
+    }
+    if (!best || candidate.readAt > best.readAt) best = candidate
+  }
+  return best
 }
 
 function walkSessionUsage(root, sinceMs) {
@@ -259,6 +325,7 @@ function main() {
   // Grok's plan reports a weekly pool. A rolling 30-day local total is the
   // useful monthly companion and comes from the same ledgers.
   const localMonth = walkSessionUsage(sessionsRoot, Date.now() - 30 * DAY_MS)
+  const bot = readBotUsage(botHomeDir())
 
   const out = {
     ok: true,
@@ -270,7 +337,8 @@ function main() {
     weekly: config.weekly,
     onDemand: config.onDemand,
     local: local,
-    localMonth: localMonth
+    localMonth: localMonth,
+    bot: bot
   }
 
   process.stdout.write(JSON.stringify(out) + '\n')

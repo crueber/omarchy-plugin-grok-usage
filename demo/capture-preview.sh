@@ -155,11 +155,13 @@ restore_state() {
   omarchy-shell shell hide "$plugin" >/dev/null 2>&1 || true
 
   if [ -f "$backup/entry.json" ]; then
-    local entry old_home old_stats
+    local entry old_home old_bot old_stats
     entry=$(cat "$backup/entry.json")
     old_home=$(jq -r '.grokHome // ""' <<<"$entry")
+    old_bot=$(jq -r '.botHome // ""' <<<"$entry")
     old_stats=$(jq -r 'if .showLocalStats == null then true else .showLocalStats end' <<<"$entry")
     omarchy bar set "$plugin" grokHome "$old_home" >/dev/null 2>&1 || true
+    omarchy bar set "$plugin" botHome "$old_bot" >/dev/null 2>&1 || true
     omarchy bar set "$plugin" showLocalStats "$old_stats" --json >/dev/null 2>&1 || true
   fi
 
@@ -252,6 +254,7 @@ hide_plugins() {
 apply_fixture() {
   note "pointing $plugin at the offline fixture"
   omarchy bar set "$plugin" grokHome "$work/grok-home"
+  omarchy bar set "$plugin" botHome "$repo_dir/demo/grok-bot-home"
   omarchy bar set "$plugin" showLocalStats true --json
   rm -f "$cache_file"
   omarchy-shell shell rescanPlugins >/dev/null

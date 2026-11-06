@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "crueber.grok-usage",
   "name": "Grok Usage",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "author": "Chris Rueber",
   "license": "MIT",
   "description": "Grok plan allowance in the Omarchy bar: the official Grok mark with the current limit meter, plus a popup with the percentage, reset clock, plan tier, billing amounts, and local session activity. Reads the snapshot Grok already writes locally; no API key or network request.",
@@ -35,7 +35,9 @@
       "nodeCommand": "",
       "grokHome": "",
       "showLocalStats": true,
-      "onRightClick": ""
+      "onRightClick": "",
+      "showBot": true,
+      "botHome": ""
     },
     "schema": [
       {
@@ -55,6 +57,13 @@
         "type": "boolean",
         "label": "Show the limit meter",
         "defaultValue": true
+      },
+      {
+        "key": "showBot",
+        "type": "boolean",
+        "label": "Show Grok Bot weekly limit",
+        "defaultValue": true,
+        "description": "Grok Bot has a separate weekly allowance. The widget reads the latest reading cached by the Grok Bot desktop app."
       },
       {
         "key": "refreshIntervalSec",
@@ -113,6 +122,13 @@
         "label": "Grok home",
         "defaultValue": "",
         "description": "Optional. Directory holding logs and sessions; empty uses $GROK_HOME or ~/.grok."
+      },
+      {
+        "key": "botHome",
+        "type": "path",
+        "label": "Grok Bot cache directory",
+        "defaultValue": "",
+        "description": "Optional. Directory with the Grok Bot app's sand-client-persistence blobs; empty uses ~/.config/Grok Bot/sand-client-persistence. Open Grok Bot to refresh the cached reading."
       },
       {
         "key": "showLocalStats",

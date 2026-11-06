@@ -55,6 +55,14 @@ Grok's plan response exposes a **weekly** allowance (`USAGE_PERIOD_TYPE_WEEKLY`)
 and no `monthlyLimit` for this account. The 30-day figure is local session
 usage, not a monthly plan limit; do not label it as one.
 
+Grok Bot has a **separate weekly allowance**, not part of the plan pool. Its
+desktop app caches the `bot.usage` RPC result under
+`~/.config/Grok Bot/sand-client-persistence/*.blob` (schema v2:
+`value.reading.usage.percentUsed`, `nextResetMs`, `readAtMs`, and
+`value.expiresAtMs`). `collect.js` scans the newest small JSON blob and passes
+it through as `bot`; it never reads the app's session/token data. The cache
+only refreshes when Grok Bot runs, so the UI marks it `cached` after its TTL.
+
 `grok usage` (no session id) is the documented plan path, but only on Grok's
 "daemon route"; on the normal local shell route it exits 1 and says to run
 `/usage` in the TUI. Do not depend on it. `grok usage <session-id>` does work
@@ -63,9 +71,10 @@ call covers plan and local activity.
 
 ## Invariants
 
-1. **No secrets.** Never read, print, or copy `~/.grok/auth.json`. The widget
-   reads only `logs/unified.jsonl` and numeric `usage.json` ledgers. It makes no
-   network request.
+1. **No secrets.** Never read, print, or copy `~/.grok/auth.json` or the Grok
+   Bot app's session/token data. The widget reads only `logs/unified.jsonl`,
+   numeric `usage.json` ledgers, and small `sand-client-persistence` usage
+   blobs. It makes no network request.
 2. **One read choke point.** Scheduled polls, panel opens, middle click, `r`,
    and IPC all go through `requestFetch()`. Do not spawn `collect.js` elsewhere;
    that bypasses the 60 s automatic / 30 s manual floors.

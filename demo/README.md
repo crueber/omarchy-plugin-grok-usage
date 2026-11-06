@@ -9,6 +9,8 @@ ledgers. No real account, workspace, prompt, token total, or path is involved.
   `billing: fetched credits config` snapshot: weekly 41 %, tier `SuperGrok`.
 - `grok-home/sessions/demo-workspace/demo-session-{a,b}/usage.json` — four
   invented turns with token and cost numbers only.
+- `grok-bot-home/usage.blob` — the Grok Bot desktop app's cached `bot.usage`
+  shape with an invented 42.7 % weekly reading and its own reset.
 
 `capture-preview.sh` copies the fixture to a temp directory and moves the
 billing period and turn timestamps around "now" so the countdown, reset clock,
@@ -53,7 +55,7 @@ omarchy hyprland monitor scaling 1
 
 | Touched | Backup | Restore |
 | --- | --- | --- |
-| `~/.config/omarchy/shell.json` widget entry | `backup/entry.json` in a private `mktemp -d` work dir | the two changed keys (`grokHome`, `showLocalStats`) via `omarchy bar set` |
+| `~/.config/omarchy/shell.json` widget entry | `backup/entry.json` in a private `mktemp -d` work dir | the changed keys (`grokHome`, `botHome`, `showLocalStats`) via `omarchy bar set` |
 | `~/.cache/grok-usage/usage.json` | `backup/usage.json` | byte-for-byte copy back, or removed if there was none |
 | Widgets passed with `--hide` | recorded in `hidden_ids` | re-enabled with `omarchy-shell shell setPluginEnabled <id> true`, keeping their bar slot |
 

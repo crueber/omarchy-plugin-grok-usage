@@ -3,9 +3,10 @@
 [![validate](https://github.com/crueber/omarchy-plugin-grok-usage/actions/workflows/validate.yml/badge.svg)](https://github.com/crueber/omarchy-plugin-grok-usage/actions/workflows/validate.yml)
 
 An Omarchy bar widget for your Grok plan allowance. It draws the official Grok
-mark in the bar with the current weekly meter and opens a popup with the
-percentage, reset countdown and clock, plan tier, billing amounts, and local
-Grok session activity for the week and the last 30 days.
+mark in the bar with the current weekly meter and, when available, Grok Bot's
+separate weekly meter; the popup shows percentages, reset clocks, plan tier,
+billing amounts, and local Grok session activity for the week and the last 30
+days.
 
 ![Grok mark and weekly meter in the Omarchy bar](screenshots/bar.png)
 
@@ -20,6 +21,12 @@ session starts, and writes the response to a local log:
 
 The widget reads that snapshot. It also sums the numeric per-turn ledgers under
 `~/.grok/sessions/<workspace>/<session>/usage.json` for local activity.
+
+Grok Bot has a **separate weekly allowance**. Its desktop app caches the
+`bot.usage` reading under
+`~/.config/Grok Bot/sand-client-persistence/*.blob`; the widget reads the newest
+small JSON blob for `percentUsed` and `nextResetMs`. Open Grok Bot to refresh
+that cache. The blob is read locally; no token or session cookie is touched.
 
 > `grok usage` (with no session id) is the documented plan endpoint, but only
 > on Grok's "daemon route". On the normal local TUI route this build exits 1 and
@@ -36,23 +43,25 @@ In the bar (default `bars` style):
   in the theme foreground
 - the current plan meter (weekly on SuperGrok), using the same used-percentage
   Grok's `/usage` modal shows
+- a second Grok Bot weekly meter when the Grok Bot app has cached a reading
 - warning and urgent colours at `warnPercent` and `criticalPercent`
 
 In the popup:
 
 - **Weekly / monthly / daily limit** with percentage, meter, reset countdown,
   and the absolute local reset clock (the label follows the account's period)
+- **Grok Bot weekly limit** with its own percentage, meter, and reset clock
 - **Plan tier** from the snapshot (`SuperGrok`, and so on)
 - **Billing** rows when the account reports an on-demand cap/usage or a prepaid
   balance
 - **Local activity · this week**: sessions, turns, tokens, and the cost Grok
   recorded in its local session ledger
 - **Local activity · 30 days**: the same local totals over a rolling month
+- a refresh action and a link to grok.com
 
 > Grok's plan allowance is currently a **weekly pool**; the account's billing
 > response does not expose a monthly usage limit. The 30-day figure is local
 > session usage from Grok's ledgers, not a monthly plan allowance.
-- a refresh action and a link to grok.com
 
 The percentage is **used**, not remaining — the same convention as Grok's
 limit bar. The label is `Weekly limit` on a weekly plan and follows the
@@ -143,8 +152,11 @@ Reads are local file I/O, but keeping one schedule makes the pair predictable.
 - Only billing numbers and numeric token/cost ledgers are read. Prompts,
   responses, session titles, workspace paths, and account identity are not
   parsed or displayed.
-- The cache contains only the displayed numbers, the snapshot time, and the
-  error string. It lives in a mode-`0700` directory (`~/.cache/grok-usage`).
+- The Grok Bot reading is a small cached JSON blob from the Grok Bot desktop
+  app; the helper reads only `percentUsed`, `nextResetMs`, and the plan label.
+- The widget's own cache contains only the displayed numbers, the snapshot
+  time, and the error string. It lives in a mode-`0700` directory
+  (`~/.cache/grok-usage`).
 
 ## Development
 
@@ -155,18 +167,20 @@ node scripts/collect.js   # inspect the live JSON
 node scripts/collect.js --home demo/grok-home   # inspect the demo fixture
 ```
 
-`demo/` holds an offline Grok home with invented billing and session data, plus
-the capture script that produces the README images. The test suite uses the
-same fixture, so CI never needs a real Grok install. `AGENTS.md` documents the
-data source and invariants. The live plugin must be updated with
-`./scripts/install.sh` rather than edited in place.
+`demo/` holds an offline Grok home with invented billing and session data,
+plus an offline Grok Bot cache fixture, and the capture script that produces
+the README images. The test suite uses the same fixtures, so CI never needs a
+real Grok install. `AGENTS.md` documents the data sources and invariants. The
+live plugin must be updated with `./scripts/install.sh` rather than edited in
+place.
 
 ## Settings
 
 | Key | Default | Meaning |
 | --- | --- | --- |
 | `barStyle` | `bars` | `bars`, `text`, or `icon` |
-| `showWeekly` | `true` | Show the limit meter |
+| `showWeekly` | `true` | Show the Grok plan limit meter |
+| `showBot` | `true` | Show the Grok Bot weekly meter when cached |
 | `refreshIntervalSec` | `300` | Read interval (60–3600) |
 | `warnPercent` | `70` | Warning threshold |
 | `criticalPercent` | `90` | Critical threshold |
@@ -174,6 +188,7 @@ data source and invariants. The live plugin must be updated with
 | `criticalColor` | `""` | Empty uses the theme urgent colour |
 | `nodeCommand` | `""` | Optional path to `node` |
 | `grokHome` | `""` | Optional Grok home; default `$GROK_HOME` or `~/.grok` |
+| `botHome` | `""` | Optional Grok Bot cache dir; default `~/.config/Grok Bot/sand-client-persistence` |
 | `showLocalStats` | `true` | Show local activity in the popup |
 | `onRightClick` | `""` | Optional shell command |
 

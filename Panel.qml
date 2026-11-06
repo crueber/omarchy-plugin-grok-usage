@@ -40,11 +40,13 @@ Panel {
   readonly property string barStyleRaw: String(setting("barStyle", "bars"))
   readonly property string barStyle: ["bars", "text", "icon"].indexOf(barStyleRaw) >= 0 ? barStyleRaw : "bars"
   readonly property bool showWeekly: setting("showWeekly", true) !== false
+  readonly property bool showBot: setting("showBot", true) !== false
   readonly property bool showLocalStats: setting("showLocalStats", true) !== false
   readonly property string warningColor: String(setting("warningColor", "#f67400"))
   readonly property string criticalColor: String(setting("criticalColor", ""))
   readonly property string nodeCommand: String(setting("nodeCommand", ""))
   readonly property string grokHome: String(setting("grokHome", ""))
+  readonly property string botHome: String(setting("botHome", ""))
   readonly property string rightClickCommand: String(setting("onRightClick", ""))
 
   readonly property string executable: nodeCommand !== "" ? nodeCommand : "node"
@@ -85,7 +87,7 @@ Panel {
   readonly property string cachePath: root.cacheDir + "/usage.json"
 
   readonly property var allWindows: Model.windows(report, warnPercent, criticalPercent)
-  readonly property var barWindows: Model.filterWindows(allWindows, { weekly: showWeekly })
+  readonly property var barWindows: Model.filterWindows(allWindows, { weekly: showWeekly, bot: showBot })
   readonly property var highest: Model.highest(barWindows.length > 0 ? barWindows : allWindows)
   readonly property bool hasData: report !== null && report.weekly !== null
   readonly property bool expired: report !== null && report.weekly !== null && report.weekly.expired === true
@@ -111,8 +113,8 @@ Panel {
     parts.push(expired ? "New period" : Model.periodName(report.period))
     return parts.join(" · ")
   }
-  readonly property string heroDetail: hasData
-    ? (expired ? "—" : Model.percentText(report.weekly.percent))
+  readonly property string heroDetail: highest !== null && hasData
+    ? Model.percentText(highest.percent)
     : ""
 
   readonly property string footerText: {
@@ -131,6 +133,7 @@ Panel {
   readonly property var local: report ? report.local : null
   readonly property bool hasLocal: showLocalStats && local !== null && local.tokens > 0
   readonly property var localMonth: report ? report.localMonth : null
+  readonly property var bot: report ? report.bot : null
   readonly property bool hasLocalMonth: showLocalStats && localMonth !== null && localMonth.turns > 0
   readonly property bool showMonthSection: hasLocalMonth && report !== null && report.period !== "month"
   readonly property var onDemand: report ? report.onDemand : null
@@ -253,6 +256,7 @@ Panel {
   function fetchCommand() {
     var command = Model.shellQuote(root.executable) + " " + Model.shellQuote(root.helperPath)
     if (root.grokHome !== "") command += " --home " + Model.shellQuote(root.grokHome)
+    if (root.botHome !== "") command += " --bot-home " + Model.shellQuote(root.botHome)
     return command
   }
 
@@ -696,6 +700,17 @@ Panel {
             }
           }
 
+          Text {
+            textFormat: Text.PlainText
+            visible: root.bot !== null && root.showBot
+            width: parent.width
+            text: "Grok Bot's weekly limit comes from the local Grok Bot app cache; open Grok Bot to refresh it."
+            color: root.dim
+            font.family: root.fontFamily
+            font.pixelSize: Style.font.caption
+            wrapMode: Text.WordWrap
+          }
+
           // On-demand and prepaid amounts are shown only when the account
           // actually reports one; the units are left as Grok reports them.
           Column {
@@ -948,7 +963,9 @@ Panel {
         }
         var reset = Model.resetText(limitRow.window.resetsAt, root.nowMs)
         var clock = root.clockAt(limitRow.window.resetsAt)
-        return clock !== "" ? reset + " (" + clock + ")" : reset
+        var when = clock !== "" ? reset + " (" + clock + ")" : reset
+        if (limitRow.window.stale) when += " · cached"
+        return when
       }
       color: root.dim
       font.family: root.fontFamily

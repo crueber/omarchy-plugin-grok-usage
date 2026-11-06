@@ -1,0 +1,1 @@
+{"schemaVersion":2,"value":{"kind":"present","selectedTeamId":null,"reading":{"usage":{"percentUsed":42.7,"nextResetMs":1794022950986,"isSandTrial":false,"hasNonZeroIncludedLimit":true,"isTeamSeat":false,"onDemand":null,"grokPlanLabel":"SuperGrok"},"readAtMs":1793984386225},"expiresAtMs":1794070786453}}

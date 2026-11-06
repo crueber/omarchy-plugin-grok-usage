@@ -91,7 +91,8 @@ function parseResult(raw) {
         prepaid: Math.max(0, number(onDemand.prepaid) || 0)
       } : { cap: 0, used: 0, prepaid: 0 },
       local: parseLocal(obj.local),
-      localMonth: parseLocal(obj.localMonth)
+      localMonth: parseLocal(obj.localMonth),
+      bot: parseBot(obj.bot)
     }
   }
 }
@@ -112,6 +113,23 @@ function parseLocal(value) {
       if (direct !== null) return direct
       return number(Date.parse(value.since || "")) || 0
     })()
+  }
+}
+
+// Grok Bot's separate weekly reading, cached by the Grok Bot desktop app.
+function parseBot(value) {
+  if (!value || typeof value !== "object") return null
+  var pct = number(value.percent)
+  if (pct === null) return null
+  return {
+    percent: clamp(pct, 0, 100),
+    resetsAt: number(value.resetsAt) || 0,
+    readAt: number(value.readAt) || 0,
+    expiresAt: number(value.expiresAt) || 0,
+    plan: plain(value.plan, 60),
+    trial: value.trial === true,
+    teamSeat: value.teamSeat === true,
+    hasIncluded: value.hasIncluded !== false
   }
 }
 
@@ -155,19 +173,45 @@ var PERIOD_DEFS = {
 }
 
 function windows(report, warnPercent, criticalPercent) {
-  if (!report || !report.weekly) return []
-  var w = report.weekly
-  var def = PERIOD_DEFS[report.period] || PERIOD_DEFS.other
-  return [{
-    key: "weekly",
-    label: def.label,
-    short: def.short,
-    detail: def.detail,
-    percent: w.expired ? 0 : percent(w.percent),
-    resetsAt: w.resetsAt,
-    expired: w.expired === true,
-    state: w.expired ? "normal" : stateOf(w.percent, warnPercent, criticalPercent)
-  }]
+  if (!report) return []
+  var out = []
+
+  if (report.weekly) {
+    var w = report.weekly
+    var def = PERIOD_DEFS[report.period] || PERIOD_DEFS.other
+    out.push({
+      key: "weekly",
+      label: def.label,
+      short: def.short,
+      detail: def.detail,
+      percent: w.expired ? 0 : percent(w.percent),
+      resetsAt: w.resetsAt,
+      expired: w.expired === true,
+      state: w.expired ? "normal" : stateOf(w.percent, warnPercent, criticalPercent)
+    })
+  }
+
+  if (report.bot) {
+    var bot = report.bot
+    var now = Date.now()
+    var stale = (bot.expiresAt > 0 && now > bot.expiresAt)
+      || (bot.resetsAt > 0 && now >= bot.resetsAt)
+    out.push({
+      key: "bot",
+      label: "Grok Bot",
+      short: "bot",
+      detail: "Grok Bot weekly",
+      percent: percent(bot.percent),
+      resetsAt: bot.resetsAt,
+      expired: false,
+      stale: stale,
+      readAt: bot.readAt,
+      expiresAt: bot.expiresAt,
+      state: stateOf(bot.percent, warnPercent, criticalPercent)
+    })
+  }
+
+  return out
 }
 
 function filterWindows(list, visible) {
@@ -220,8 +264,9 @@ function tooltip(list, now) {
   var lines = []
   for (var i = 0; i < list.length; i++) {
     var w = list[i]
-    var line = "Grok " + w.detail.toLowerCase() + ": "
+    var line = w.detail + ": "
     line += w.expired ? "period ended" : percentText(w.percent)
+    if (w.stale) line += " · cached"
     lines.push(line)
     var reset = resetText(w.resetsAt, now)
     if (reset !== "") lines.push("  " + reset)
@@ -341,7 +386,17 @@ function slimReport(report) {
       prepaid: number(report.onDemand.prepaid) || 0
     } : null,
     local: slimLocal(report.local),
-    localMonth: slimLocal(report.localMonth)
+    localMonth: slimLocal(report.localMonth),
+    bot: report.bot ? {
+      percent: percent(report.bot.percent),
+      resetsAt: number(report.bot.resetsAt) || 0,
+      readAt: number(report.bot.readAt) || 0,
+      expiresAt: number(report.bot.expiresAt) || 0,
+      plan: text(report.bot.plan, 60),
+      trial: report.bot.trial === true,
+      teamSeat: report.bot.teamSeat === true,
+      hasIncluded: report.bot.hasIncluded !== false
+    } : null
   }
 }
 
@@ -389,7 +444,8 @@ function parseCache(raw, nowMs) {
       } : null,
       onDemand: data.onDemand,
       local: data.local,
-      localMonth: data.localMonth
+      localMonth: data.localMonth,
+      bot: data.bot
     }))
     if (parsed && parsed.ok) report = parsed.report
   }

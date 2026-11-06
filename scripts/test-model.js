@@ -15,6 +15,7 @@ const vm = require('vm')
 const repo = path.resolve(__dirname, '..')
 const DAY_MS = 86400000
 const fixture = path.join(repo, 'demo', 'grok-home')
+const botFixture = path.join(repo, 'demo', 'grok-bot-home')
 const home = fs.mkdtempSync(path.join(os.tmpdir(), 'grok-home-'))
 
 const iso = function(ms) { return new Date(ms).toISOString() }
@@ -58,7 +59,8 @@ try {
   stageFixture()
   raw = execFileSync(process.execPath, [
     path.join(repo, 'scripts', 'collect.js'),
-    '--home', home
+    '--home', home,
+    '--bot-home', botFixture
   ], { encoding: 'utf8' })
 } finally {
   cleanup()
@@ -86,6 +88,9 @@ assert.ok(parsed.report.localMonth, 'monthly local activity present')
 assert.equal(parsed.report.localMonth.sessions, 2, 'monthly fixture sessions')
 assert.equal(parsed.report.localMonth.turns, 4, 'monthly fixture turns')
 assert.ok(Math.abs(parsed.report.localMonth.costUsd - 2.52) < 0.0001, 'monthly fixture cost')
+assert.ok(parsed.report.bot, 'Grok Bot usage present')
+assert.equal(parsed.report.bot.percent, 42.7, 'Grok Bot fixture percentage')
+assert.ok(parsed.report.bot.resetsAt > 0, 'Grok Bot reset present')
 
 // A fresh period can omit creditUsagePercent entirely. The TUI shows that as
 // 0%, and the widget must keep the new snapshot instead of showing "—".
@@ -106,7 +111,8 @@ try {
   fs.writeFileSync(zeroLog, zeroLines.join('\n') + '\n')
   const zeroRaw = execFileSync(process.execPath, [
     path.join(repo, 'scripts', 'collect.js'),
-    '--home', zeroHome
+    '--home', zeroHome,
+    '--bot-home', botFixture
   ], { encoding: 'utf8' })
   const zero = context.parseResult(zeroRaw)
   assert.ok(zero && zero.ok, 'zero-usage snapshot should parse')
@@ -116,14 +122,16 @@ try {
 }
 
 const windows = context.windows(parsed.report, 70, 90)
-assert.equal(windows.length, 1)
+assert.equal(windows.length, 2)
 assert.equal(windows[0].key, 'weekly')
 assert.ok(windows[0].detail === 'Weekly limit')
+assert.equal(windows[1].key, 'bot')
+assert.equal(windows[1].detail, 'Grok Bot weekly')
 
 const text = context.percentText(parsed.report.weekly.percent)
 assert.ok(/^\d+(\.\d)?%$/.test(text), 'percent formatting: ' + text)
 assert.ok(context.resetText(parsed.report.weekly.resetsAt, Date.now()).length > 0)
-assert.ok(context.tooltip(windows, Date.now()).indexOf('weekly limit') >= 0)
+assert.ok(context.tooltip(windows, Date.now()).toLowerCase().indexOf('weekly limit') >= 0)
 assert.ok(context.compactText(windows).indexOf('wk ') === 0)
 
 const cacheRaw = context.serializeCache(
@@ -142,6 +150,7 @@ assert.equal(cache.report.local.since, parsed.report.local.since)
 assert.equal(cache.report.local.tokens, parsed.report.local.tokens)
 assert.equal(cache.report.localMonth.turns, parsed.report.localMonth.turns)
 assert.equal(cache.report.localMonth.tokens, parsed.report.localMonth.tokens)
+assert.equal(cache.report.bot.percent, parsed.report.bot.percent)
 
 // Cooldown floors: a fresh success waits the 5-minute interval, a fresh manual
 // attempt waits 30 seconds, and failures grow towards the 10-minute cap.
@@ -167,7 +176,7 @@ const expiredParsed = context.parseResult(JSON.stringify(expired))
 const expiredWindows = context.windows(expiredParsed.report, 70, 90)
 assert.equal(expiredWindows[0].expired, true)
 assert.equal(expiredWindows[0].percent, 0)
-assert.equal(context.compactText(expiredWindows), 'wk —')
+assert.ok(context.compactText(expiredWindows).startsWith('wk —'))
 
 console.log('ok — weekly ' + text + ', ' + parsed.report.tier
   + ', local ' + parsed.report.local.tokens + ' tokens')

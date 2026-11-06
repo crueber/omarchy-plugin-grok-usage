@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.0 — 2026-11-06
+
+- Add Grok Bot's separate weekly limit as a second window in the bar and
+  popup. The reading comes from the Grok Bot desktop app's local
+  `sand-client-persistence` cache (`percentUsed`, `nextResetMs`); no token,
+  network request, or auth file is used. Open Grok Bot to refresh the cache.
+
 ## 1.1.0 — 2026-11-06
 
 - Show local session activity for the last 30 days in the popup and tooltip,
