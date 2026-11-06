@@ -1,0 +1,42 @@
+import QtQuick
+import QtQuick.Shapes
+
+// The Grok mark, traced from the official app icon served at
+// https://grok.com/images/favicon.svg (512×512 geometry, two interlocking
+// strokes). It is drawn as a vector so it stays crisp at 16–24 px and takes
+// the theme foreground instead of shipping a black app-icon square.
+Item {
+  id: root
+
+  property real markSize: 16
+  property color color: "white"
+
+  implicitWidth: Math.round(markSize)
+  implicitHeight: Math.round(markSize)
+  width: implicitWidth
+  height: implicitHeight
+
+  Shape {
+    width: 512
+    height: 512
+    scale: root.markSize / 512
+    transformOrigin: Item.TopLeft
+    antialiasing: true
+
+    ShapePath {
+      fillColor: root.color
+      strokeColor: "transparent"
+      PathSvg {
+        path: "M210.484 312.759L343.465 210.383C349.984 205.364 359.302 207.322 362.408 215.117C378.758 256.231 371.454 305.64 338.925 339.563C306.397 373.487 261.137 380.927 219.768 363.983L174.577 385.803C239.394 432.008 318.104 420.581 367.289 369.251C406.303 328.564 418.386 273.104 407.088 223.091L407.19 223.198C390.807 149.726 411.218 120.359 453.03 60.3072C454.02 58.8833 455.01 57.4595 456 56L400.978 113.382V113.204L210.45 312.794Z"
+      }
+    }
+
+    ShapePath {
+      fillColor: root.color
+      strokeColor: "transparent"
+      PathSvg {
+        path: "M183.042 337.641C136.519 291.294 144.54 219.567 184.236 178.203C213.59 147.59 261.683 135.096 303.666 153.464L348.755 131.75C340.632 125.627 330.221 119.042 318.275 114.414C264.277 91.2407 199.63 102.774 155.735 148.516C113.513 192.549 100.236 260.254 123.036 318.027C140.069 361.206 112.148 391.748 84.0229 422.575C74.0561 433.503 64.0553 444.431 56 456L183.007 337.677Z"
+      }
+    }
+  }
+}

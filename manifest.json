@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "id": "crueber.grok-usage",
+  "name": "Grok Usage",
+  "version": "1.0.0",
+  "author": "Chris Rueber",
+  "license": "MIT",
+  "description": "Grok plan allowance in the Omarchy bar: the official Grok mark with the current limit meter, plus a popup with the percentage, reset clock, plan tier, billing amounts, and local session activity. Reads the snapshot Grok already writes locally; no API key or network request.",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "Panel.qml" },
+  "barWidget": {
+    "displayName": "Grok Usage",
+    "description": "Bar pill with the Grok mark and the plan meter; click for percentage, reset time, tier, billing amounts, and local activity.",
+    "category": "AI",
+    "aliases": ["grok", "grok-usage", "supergrok", "xai"],
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {
+      "barStyle": "bars",
+      "showWeekly": true,
+      "refreshIntervalSec": 300,
+      "warnPercent": 70,
+      "criticalPercent": 90,
+      "warningColor": "#f67400",
+      "criticalColor": "",
+      "nodeCommand": "",
+      "grokHome": "",
+      "showLocalStats": true,
+      "onRightClick": ""
+    },
+    "schema": [
+      {
+        "key": "barStyle",
+        "type": "enum",
+        "label": "Bar shows",
+        "options": ["bars", "text", "icon"],
+        "defaultValue": "bars",
+        "description": "bars: the mark plus the limit meter; text: the percentage; icon: just the mark."
+      },
+      {
+        "key": "showWeekly",
+        "type": "boolean",
+        "label": "Show the limit meter",
+        "defaultValue": true
+      },
+      {
+        "key": "refreshIntervalSec",
+        "type": "integer",
+        "label": "Refresh interval (seconds)",
+        "min": 60,
+        "max": 3600,
+        "step": 60,
+        "defaultValue": 300,
+        "description": "How often to re-read the local Grok snapshot. Five minutes is the default; reads are local and cheap, and a disk cache means shell restarts do not cause extra reads."
+      },
+      {
+        "key": "warnPercent",
+        "type": "integer",
+        "label": "Warning threshold (%)",
+        "min": 0,
+        "max": 100,
+        "step": 5,
+        "defaultValue": 70,
+        "description": "The meter turns the warning colour at this percentage."
+      },
+      {
+        "key": "criticalPercent",
+        "type": "integer",
+        "label": "Critical threshold (%)",
+        "min": 0,
+        "max": 100,
+        "step": 5,
+        "defaultValue": 90,
+        "description": "The meter turns the urgent colour at this percentage."
+      },
+      {
+        "key": "warningColor",
+        "type": "string",
+        "label": "Warning colour",
+        "defaultValue": "#f67400",
+        "description": "Hex colour; empty keeps the theme foreground."
+      },
+      {
+        "key": "criticalColor",
+        "type": "string",
+        "label": "Critical colour",
+        "defaultValue": "",
+        "description": "Hex colour; empty uses the theme's urgent colour."
+      },
+      {
+        "key": "nodeCommand",
+        "type": "path",
+        "label": "Node executable",
+        "defaultValue": "",
+        "description": "Optional. Path to node for the small log reader; empty finds node in your login shell PATH."
+      },
+      {
+        "key": "grokHome",
+        "type": "path",
+        "label": "Grok home",
+        "defaultValue": "",
+        "description": "Optional. Directory holding logs and sessions; empty uses $GROK_HOME or ~/.grok."
+      },
+      {
+        "key": "showLocalStats",
+        "type": "boolean",
+        "label": "Show local activity in the popup",
+        "defaultValue": true,
+        "description": "Adds sessions, turns, tokens, and Grok's recorded cost from local session ledgers for the current billing period."
+      },
+      {
+        "key": "onRightClick",
+        "type": "string",
+        "label": "Right-click command",
+        "defaultValue": "",
+        "description": "Optional shell command; empty opens grok.com."
+      }
+    ]
+  }
+}
