@@ -253,7 +253,12 @@ function main() {
   const since = config.weekly.periodStart > 0
     ? config.weekly.periodStart
     : Date.now() - 7 * DAY_MS
-  const local = walkSessionUsage(path.join(grokHome, 'sessions'), since)
+  const sessionsRoot = path.join(grokHome, 'sessions')
+  const local = walkSessionUsage(sessionsRoot, since)
+
+  // Grok's plan reports a weekly pool. A rolling 30-day local total is the
+  // useful monthly companion and comes from the same ledgers.
+  const localMonth = walkSessionUsage(sessionsRoot, Date.now() - 30 * DAY_MS)
 
   const out = {
     ok: true,
@@ -264,7 +269,8 @@ function main() {
     unified: config.unified,
     weekly: config.weekly,
     onDemand: config.onDemand,
-    local: local
+    local: local,
+    localMonth: localMonth
   }
 
   process.stdout.write(JSON.stringify(out) + '\n')

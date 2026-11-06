@@ -3,9 +3,9 @@
 [![validate](https://github.com/crueber/omarchy-plugin-grok-usage/actions/workflows/validate.yml/badge.svg)](https://github.com/crueber/omarchy-plugin-grok-usage/actions/workflows/validate.yml)
 
 An Omarchy bar widget for your Grok plan allowance. It draws the official Grok
-mark in the bar with the current limit meter and opens a popup with the
+mark in the bar with the current weekly meter and opens a popup with the
 percentage, reset countdown and clock, plan tier, billing amounts, and local
-Grok session activity.
+Grok session activity for the week and the last 30 days.
 
 ![Grok mark and weekly meter in the Omarchy bar](screenshots/bar.png)
 
@@ -45,8 +45,13 @@ In the popup:
 - **Plan tier** from the snapshot (`SuperGrok`, and so on)
 - **Billing** rows when the account reports an on-demand cap/usage or a prepaid
   balance
-- **Local activity · this week/month**: sessions, turns, tokens, and the cost
-  Grok recorded in its local session ledger
+- **Local activity · this week**: sessions, turns, tokens, and the cost Grok
+  recorded in its local session ledger
+- **Local activity · 30 days**: the same local totals over a rolling month
+
+> Grok's plan allowance is currently a **weekly pool**; the account's billing
+> response does not expose a monthly usage limit. The 30-day figure is local
+> session usage from Grok's ledgers, not a monthly plan allowance.
 - a refresh action and a link to grok.com
 
 The percentage is **used**, not remaining — the same convention as Grok's

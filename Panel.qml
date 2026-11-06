@@ -93,9 +93,16 @@ Panel {
   readonly property bool busy: fetchProc.running
   readonly property string compactText: Model.compactText(barWindows)
   readonly property string refreshNote: report !== null && lastErrorMessage !== "" ? "read failed" : ""
-  readonly property string tooltipText: hasData
-    ? Model.tooltip(allWindows, nowMs)
-    : (errorText !== "" ? "Grok usage: " + errorText : "Grok usage: reading the local snapshot")
+  readonly property string tooltipText: {
+    var base = hasData
+      ? Model.tooltip(allWindows, nowMs)
+      : (errorText !== "" ? "Grok usage: " + errorText : "Grok usage: reading the local snapshot")
+    if (showMonthSection) {
+      var turns = localMonth.turns === 1 ? "1 turn" : localMonth.turns + " turns"
+      base += "\nLast 30 days locally: " + turns + " · " + Model.formatCost(localMonth.costUsd)
+    }
+    return base
+  }
 
   readonly property string heroMeta: {
     if (!report) return errorText !== "" ? "No snapshot" : "Reading snapshot"
@@ -123,6 +130,9 @@ Panel {
 
   readonly property var local: report ? report.local : null
   readonly property bool hasLocal: showLocalStats && local !== null && local.tokens > 0
+  readonly property var localMonth: report ? report.localMonth : null
+  readonly property bool hasLocalMonth: showLocalStats && localMonth !== null && localMonth.turns > 0
+  readonly property bool showMonthSection: hasLocalMonth && report !== null && report.period !== "month"
   readonly property var onDemand: report ? report.onDemand : null
   readonly property bool hasBilling: onDemand !== null
     && (onDemand.cap > 0 || onDemand.used > 0 || onDemand.prepaid > 0)
@@ -781,6 +791,62 @@ Panel {
               textFormat: Text.PlainText
               width: parent.width
               text: "From Grok's local session ledger; whole turns since the period started."
+              color: root.dim
+              font.family: root.fontFamily
+              font.pixelSize: Style.font.caption
+              wrapMode: Text.WordWrap
+            }
+          }
+
+          Column {
+            visible: root.showMonthSection
+            width: parent.width
+            spacing: Style.space(5)
+
+            PanelSeparator {
+              foreground: root.foreground
+            }
+
+            PanelSectionHeader {
+              foreground: root.foreground
+              fontFamily: root.fontFamily
+              text: "Local activity · 30 days"
+            }
+
+            Text {
+              textFormat: Text.PlainText
+              width: parent.width
+              text: {
+                if (!root.localMonth) return ""
+                var sessions = root.localMonth.sessions === 1 ? "1 session" : root.localMonth.sessions + " sessions"
+                var turns = root.localMonth.turns === 1 ? "1 turn" : root.localMonth.turns + " turns"
+                return turns + " · " + sessions + " · " + Model.formatCost(root.localMonth.costUsd)
+              }
+              color: root.foreground
+              font.family: root.fontFamily
+              font.pixelSize: Style.font.body
+              elide: Text.ElideRight
+            }
+
+            Text {
+              textFormat: Text.PlainText
+              width: parent.width
+              text: {
+                if (!root.localMonth) return ""
+                return Model.formatCount(root.localMonth.input) + " input · "
+                  + Model.formatCount(root.localMonth.output) + " output · "
+                  + Model.formatCount(root.localMonth.cached) + " cached"
+              }
+              color: root.dim
+              font.family: root.fontFamily
+              font.pixelSize: Style.font.caption
+              elide: Text.ElideRight
+            }
+
+            Text {
+              textFormat: Text.PlainText
+              width: parent.width
+              text: "Local session ledger for the last 30 days; Grok's plan allowance itself is weekly."
               color: root.dim
               font.family: root.fontFamily
               font.pixelSize: Style.font.caption

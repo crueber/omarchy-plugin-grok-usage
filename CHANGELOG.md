@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0 — 2026-11-06
+
+- Show local session activity for the last 30 days in the popup and tooltip,
+  alongside the weekly plan interval. This is local usage, not a monthly plan
+  limit: Grok exposes a weekly allowance only.
+
 ## 1.0.1 — 2026-11-06
 
 - Treat a missing `creditUsagePercent` as 0% when a new weekly period starts.

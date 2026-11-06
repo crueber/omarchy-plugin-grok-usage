@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "crueber.grok-usage",
   "name": "Grok Usage",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "author": "Chris Rueber",
   "license": "MIT",
   "description": "Grok plan allowance in the Omarchy bar: the official Grok mark with the current limit meter, plus a popup with the percentage, reset clock, plan tier, billing amounts, and local session activity. Reads the snapshot Grok already writes locally; no API key or network request.",

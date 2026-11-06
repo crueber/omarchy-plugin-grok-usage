@@ -21,7 +21,7 @@ const iso = function(ms) { return new Date(ms).toISOString() }
 const now = Date.now()
 const periodStart = iso(now - 4 * DAY_MS)
 const periodEnd = iso(now + 3 * DAY_MS + 2 * 3600000)
-const turnAt = iso(now - DAY_MS)
+const turnAt = iso(now)
 
 function stageFixture() {
   fs.cpSync(fixture, home, { recursive: true })
@@ -43,7 +43,7 @@ function stageFixture() {
     const usagePath = path.join(sessions, name, 'usage.json')
     if (!fs.existsSync(usagePath)) continue
     const doc = JSON.parse(fs.readFileSync(usagePath, 'utf8'))
-    doc.updatedAt = iso(now - DAY_MS)
+    doc.updatedAt = turnAt
     for (const turn of doc.turns || []) turn.endedAt = turnAt
     fs.writeFileSync(usagePath, JSON.stringify(doc, null, 2) + '\n')
   }
@@ -82,6 +82,10 @@ assert.ok(parsed.report.logPath.indexOf(home) === 0, 'read only the fixture home
 assert.equal(parsed.report.local.sessions, 2, 'fixture sessions')
 assert.equal(parsed.report.local.turns, 4, 'fixture turns')
 assert.ok(Math.abs(parsed.report.local.costUsd - 2.52) < 0.0001, 'fixture cost')
+assert.ok(parsed.report.localMonth, 'monthly local activity present')
+assert.equal(parsed.report.localMonth.sessions, 2, 'monthly fixture sessions')
+assert.equal(parsed.report.localMonth.turns, 4, 'monthly fixture turns')
+assert.ok(Math.abs(parsed.report.localMonth.costUsd - 2.52) < 0.0001, 'monthly fixture cost')
 
 // A fresh period can omit creditUsagePercent entirely. The TUI shows that as
 // 0%, and the widget must keep the new snapshot instead of showing "—".
@@ -136,6 +140,8 @@ assert.equal(cache.report.weekly.percent, parsed.report.weekly.percent)
 assert.equal(cache.report.tier, parsed.report.tier)
 assert.equal(cache.report.local.since, parsed.report.local.since)
 assert.equal(cache.report.local.tokens, parsed.report.local.tokens)
+assert.equal(cache.report.localMonth.turns, parsed.report.localMonth.turns)
+assert.equal(cache.report.localMonth.tokens, parsed.report.localMonth.tokens)
 
 // Cooldown floors: a fresh success waits the 5-minute interval, a fresh manual
 // attempt waits 30 seconds, and failures grow towards the 10-minute cap.

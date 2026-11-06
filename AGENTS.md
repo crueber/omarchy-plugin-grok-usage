@@ -28,7 +28,10 @@ its reset clock, and local Grok session activity.
   manifest, and rescans plugins. It does **not** enable the widget.
 - Do **not** put a `.git` directory inside the live plugin folder. Quickshell
   watches that tree and a git checkout can trigger reload races.
-- There is no public push target yet; keep this local for review.
+- GitHub `crueber/omarchy-plugin-grok-usage` is the push target. The Forgejo
+  repo `git.packden.us/crueber/omarchy-plugin-grok-usage` is a read-only daily
+  pull mirror; do not push to it.
+- Marketplace: `omacom/omarchy-plugin-marketplace` issue #14113.
 
 ## Data source (important)
 
@@ -45,7 +48,12 @@ The shell writes the response to `~/.grok/logs/unified.jsonl` as:
 That line is the source. It needs no token, no network request, and no new key.
 `scripts/collect.js` scans backwards from the end of the log for the newest such
 line, then sums numeric per-turn ledgers under
-`~/.grok/sessions/<workspace>/<session>/usage.json` for the current period.
+`~/.grok/sessions/<workspace>/<session>/usage.json` for the current period and
+for a rolling 30-day window (`localMonth`).
+
+Grok's plan response exposes a **weekly** allowance (`USAGE_PERIOD_TYPE_WEEKLY`)
+and no `monthlyLimit` for this account. The 30-day figure is local session
+usage, not a monthly plan limit; do not label it as one.
 
 `grok usage` (no session id) is the documented plan path, but only on Grok's
 "daemon route"; on the normal local shell route it exits 1 and says to run

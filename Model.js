@@ -90,7 +90,8 @@ function parseResult(raw) {
         used: Math.max(0, number(onDemand.used) || 0),
         prepaid: Math.max(0, number(onDemand.prepaid) || 0)
       } : { cap: 0, used: 0, prepaid: 0 },
-      local: parseLocal(obj.local)
+      local: parseLocal(obj.local),
+      localMonth: parseLocal(obj.localMonth)
     }
   }
 }
@@ -304,6 +305,21 @@ var AUTO_MIN_MS = 60000
 var FORCE_MIN_MS = 30000
 var FAILURE_CAP_MS = 600000
 
+function slimLocal(local) {
+  if (!local) return null
+  return {
+    sessions: number(local.sessions) || 0,
+    turns: number(local.turns) || 0,
+    tokens: number(local.tokens) || 0,
+    input: number(local.input) || 0,
+    output: number(local.output) || 0,
+    cached: number(local.cached) || 0,
+    reasoning: number(local.reasoning) || 0,
+    costUsd: number(local.costUsd) || 0,
+    since: number(local.since) || 0
+  }
+}
+
 function slimReport(report) {
   if (!report) return null
   return {
@@ -324,17 +340,8 @@ function slimReport(report) {
       used: number(report.onDemand.used) || 0,
       prepaid: number(report.onDemand.prepaid) || 0
     } : null,
-    local: report.local ? {
-      sessions: number(report.local.sessions) || 0,
-      turns: number(report.local.turns) || 0,
-      tokens: number(report.local.tokens) || 0,
-      input: number(report.local.input) || 0,
-      output: number(report.local.output) || 0,
-      cached: number(report.local.cached) || 0,
-      reasoning: number(report.local.reasoning) || 0,
-      costUsd: number(report.local.costUsd) || 0,
-      since: number(report.local.since) || 0
-    } : null
+    local: slimLocal(report.local),
+    localMonth: slimLocal(report.localMonth)
   }
 }
 
@@ -381,7 +388,8 @@ function parseCache(raw, nowMs) {
         expired: data.weekly.expired
       } : null,
       onDemand: data.onDemand,
-      local: data.local
+      local: data.local,
+      localMonth: data.localMonth
     }))
     if (parsed && parsed.ok) report = parsed.report
   }
