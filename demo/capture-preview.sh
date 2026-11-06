@@ -343,6 +343,43 @@ theme_accent() {
   done
 }
 
+# Bbox of the popup border. Its horizontal and vertical accent lines are much
+# longer than anything in the wallpaper, so requiring a run longer than an
+# eighth of the screen ignores wallpaper accents that a plain colour mask would
+# include.
+accent_border_bbox() {
+  local screen_w=$1 screen_h=$2 bar_h=$3 accent=$4
+  local r g b
+  [[ $accent =~ ^#[0-9A-Fa-f]{6}$ ]] || return 0
+  r=$((16#${accent:1:2}))
+  g=$((16#${accent:3:2}))
+  b=$((16#${accent:5:2}))
+  magick "$shots/open.png" -crop "${screen_w}x$(( screen_h - bar_h - 2 ))+0+$(( bar_h + 2 ))" +repage -depth 8 txt:- \
+    | awk -F'[:,() ]+' -v W="$screen_w" -v H="$(( screen_h - bar_h - 2 ))" \
+        -v ar="$r" -v ag="$g" -v ab="$b" '
+      /^[0-9]+,/ {
+        if ($3 == ar && $4 == ag && $5 == ab) { row[$2]++; col[$1]++ }
+      }
+      END {
+        nr = 0
+        for (y = 0; y < H; y++) {
+          if (row[y] <= W / 8) continue
+          if (nr && y <= ends[nr] + 2) ends[nr] = y
+          else { nr++; starts[nr] = y; ends[nr] = y }
+        }
+        nc = 0
+        for (x = 0; x < W; x++) {
+          if (col[x] <= H / 8) continue
+          if (nc && x <= cends[nc] + 2) cends[nc] = x
+          else { nc++; cstarts[nc] = x; cends[nc] = x }
+        }
+        if (nr >= 2 && nc >= 2) {
+          printf "%dx%d+%d+%d\n", cends[nc] - cstarts[1] + 1,
+            ends[nr] - starts[1] + 1, cstarts[1], starts[1]
+        }
+      }' 2>/dev/null || true
+}
+
 # Locate the popup by its accent border. Independent of the wallpaper or of
 # anything animating behind it; falls back to a frame diff if the theme accent
 # is unknown.
@@ -352,9 +389,7 @@ detect_panel() {
 
   accent=${accent_arg:-$(theme_accent)}
   if [ -n "$accent" ]; then
-    geo=$(magick "$shots/open.png" -crop "${screen_w}x$(( screen_h - bar_h - 2 ))+0+$(( bar_h + 2 ))" +repage \
-      -fuzz 1% -fill white -opaque "$accent" -fill black +opaque white \
-      -morphology Open Rectangle:60x1 -trim -format '%wx%h%O' info: 2>/dev/null || true)
+    geo=$(accent_border_bbox "$screen_w" "$screen_h" "$bar_h" "$accent")
     if [[ $geo =~ ^([0-9]+)x([0-9]+)\+([0-9]+)\+([0-9]+)$ ]] \
       && (( BASH_REMATCH[1] > 200 && BASH_REMATCH[2] > 200 )) \
       && (( BASH_REMATCH[1] < screen_w * 8 / 10 && BASH_REMATCH[2] < screen_h * 9 / 10 )); then
@@ -411,7 +446,7 @@ compose() {
             s = x
             while (x < w && on[x]) x++
             e = x - 1
-            if (n > 0 && s - ends[n] <= 14) ends[n] = e
+            if (n > 0 && s - ends[n] <= 24) ends[n] = e
             else { n++; starts[n] = s; ends[n] = e }
           }
           best = 0; bestd = 1e9
@@ -494,7 +529,7 @@ qa() {
       bad=1
     fi
   done
-  for pattern in 'grok' 'weekly' '41%' 'supergrok'; do
+  for pattern in 'grok' 'weekly' '41%' 'supergrok' 'grok bot' '42\.7%'; do
     if ! grep -qiE "$pattern" <<<"$ocr"; then
       printf 'FAIL: expected /%s/ is missing from the preview\n' "$pattern" >&2
       bad=1
