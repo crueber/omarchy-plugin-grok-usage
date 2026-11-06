@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Add an offline `demo/grok-home` fixture, a capture script for the README and
+  marketplace images, and use the fixture in `scripts/test-model.js` so CI no
+  longer needs a real Grok install.
+- README: add the standard `omarchy plugin add` install path and the CI badge;
+  note the cache directory mode and the no-network/no-token guarantees.
+- Replace `preview.png` and `screenshots/bar.png` with anonymised captures of
+  the real widget running on the fixture.
+
 ## 1.0.0 — 2026-11-06
 
 - Initial widget: official Grok mark in the bar, weekly plan meter, and a popup

@@ -1,0 +1,3 @@
+{"ts":"2026-11-06T04:59:58.000Z","level":"info","msg":"session: started"}
+{"ts":"2026-11-06T05:00:00.000Z","level":"info","msg":"billing: fetched credits config","ctx":{"config":{"creditUsagePercent":41.0,"currentPeriod":{"type":"USAGE_PERIOD_TYPE_WEEKLY","start":"2026-11-02T00:00:00.000Z","end":"2026-11-09T00:00:00.000Z"},"onDemandCap":{"val":0},"onDemandUsed":{"val":0},"prepaidBalance":{"val":0},"isUnifiedBillingUser":true},"subscriptionTier":"SuperGrok"}}
+{"ts":"2026-11-06T05:00:01.000Z","level":"info","msg":"context: loaded"}

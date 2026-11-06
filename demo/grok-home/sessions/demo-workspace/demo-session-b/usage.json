@@ -1,0 +1,25 @@
+{
+  "updatedAt": "2026-11-05T20:00:00.000Z",
+  "turns": [
+    {
+      "endedAt": "2026-11-05T16:00:00.000Z",
+      "turnCount": 1,
+      "totalTokens": 151200,
+      "inputTokens": 116000,
+      "outputTokens": 35200,
+      "cachedReadTokens": 61000,
+      "reasoningTokens": 7300,
+      "costUsdTicks": 8800000000
+    },
+    {
+      "endedAt": "2026-11-05T17:00:00.000Z",
+      "turnCount": 1,
+      "totalTokens": 73400,
+      "inputTokens": 56000,
+      "outputTokens": 17400,
+      "cachedReadTokens": 29000,
+      "reasoningTokens": 3200,
+      "costUsdTicks": 3900000000
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 # Grok Usage
 
+[![validate](https://github.com/crueber/omarchy-plugin-grok-usage/actions/workflows/validate.yml/badge.svg)](https://github.com/crueber/omarchy-plugin-grok-usage/actions/workflows/validate.yml)
+
 An Omarchy bar widget for your Grok plan allowance. It draws the official Grok
 mark in the bar with the current limit meter and opens a popup with the
 percentage, reset countdown and clock, plan tier, billing amounts, and local
@@ -53,9 +55,17 @@ snapshot's `USAGE_PERIOD_TYPE_*` for monthly or daily plans.
 
 ## Install
 
-Clone or copy this repository, then run the installer:
+Install it the standard Omarchy way:
 
 ```bash
+omarchy plugin add https://github.com/crueber/omarchy-plugin-grok-usage --enable
+```
+
+Or clone the repo and run the installer:
+
+```bash
+git clone https://github.com/crueber/omarchy-plugin-grok-usage.git
+cd omarchy-plugin-grok-usage
 ./scripts/install.sh
 ```
 
@@ -129,18 +139,22 @@ Reads are local file I/O, but keeping one schedule makes the pair predictable.
   responses, session titles, workspace paths, and account identity are not
   parsed or displayed.
 - The cache contains only the displayed numbers, the snapshot time, and the
-  error string.
+  error string. It lives in a mode-`0700` directory (`~/.cache/grok-usage`).
 
 ## Development
 
 ```bash
 ./scripts/validate.sh     # manifest + required files
-./scripts/test-model.js   # parse a real payload and round-trip the cache
+./scripts/test-model.js   # offline fixture: parse payload + round-trip cache
 node scripts/collect.js   # inspect the live JSON
+node scripts/collect.js --home demo/grok-home   # inspect the demo fixture
 ```
 
-`AGENTS.md` documents the data source and invariants. The live plugin must be
-updated with `./scripts/install.sh` rather than edited in place.
+`demo/` holds an offline Grok home with invented billing and session data, plus
+the capture script that produces the README images. The test suite uses the
+same fixture, so CI never needs a real Grok install. `AGENTS.md` documents the
+data source and invariants. The live plugin must be updated with
+`./scripts/install.sh` rather than edited in place.
 
 ## Settings
 
@@ -172,6 +186,9 @@ omarchy bar set crueber.grok-usage barStyle text
   so the billing snapshot exists
 - Node.js for the small log reader (`node` on the login shell PATH, or set
   `nodeCommand`)
+
+That is all: no API key, no extra packages, no account token, and no network
+access.
 
 ## Licence
 

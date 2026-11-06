@@ -14,7 +14,11 @@ its reset clock, and local Grok session activity.
 - `preview.png`, `screenshots/bar.png` — README images.
 - `scripts/install.sh` — deploy to the live plugin directory.
 - `scripts/validate.sh` — manifest + required-file check.
-- `scripts/test-model.js` — Node round-trip test for `Model.js`.
+- `scripts/test-model.js` — Node round-trip test for `Model.js`; runs against
+  `demo/grok-home`, never against `~/.grok`.
+- `demo/` — offline Grok home (invented billing + ledgers) and the capture
+  script for the README/marketplace images. See `demo/README.md`; the fixture
+  dates are moved around "now" at capture time so the shot never expires.
 
 ## Source and deploy
 
