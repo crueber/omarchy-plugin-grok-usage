@@ -53,13 +53,20 @@ omarchy hyprland monitor scaling 1
 
 | Touched | Backup | Restore |
 | --- | --- | --- |
-| `~/.config/omarchy/shell.json` widget entry | `$TMPDIR/grok-usage-capture/backup/entry.json` + full `shell.json` copy | the two changed keys (`grokHome`, `showLocalStats`) via `omarchy bar set` |
+| `~/.config/omarchy/shell.json` widget entry | `backup/entry.json` in a private `mktemp -d` work dir | the two changed keys (`grokHome`, `showLocalStats`) via `omarchy bar set` |
 | `~/.cache/grok-usage/usage.json` | `backup/usage.json` | byte-for-byte copy back, or removed if there was none |
 | Widgets passed with `--hide` | recorded in `hidden_ids` | re-enabled with `omarchy-shell shell setPluginEnabled <id> true`, keeping their bar slot |
 
+The work directory is created with `mktemp -d` (mode `0700`, unpredictable
+name) and backups inside it are mode `0600`; no full `shell.json` copy is
+written. The optional `GROK_USAGE_CAPTURE_DIR` override is accepted only when
+it is a real directory owned by the current user and inaccessible to
+group/other.
+
 A `trap` runs the restore on success, failure, Ctrl-C, and `SIGTERM`. A
-successful run removes its temporary directory; a failed one keeps the raw
-shots and backups for diagnosis. `--keep-raw` keeps them in both cases.
+successful run removes its temporary directory; a failed one keeps the private
+backups for diagnosis and drops the raw shots. `--keep-raw` keeps everything in
+both cases.
 
 ## Quality gate
 
