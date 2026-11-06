@@ -229,10 +229,17 @@ stage_fixture() {
   done <"$work/grok-home/logs/unified.jsonl"
   mv "$tmp" "$work/grok-home/logs/unified.jsonl"
 
+  # Spread the fixture sessions across the two local windows: the first is in
+  # the current week, the next is two weeks old. Otherwise every turn is "now"
+  # and the 7-day and 30-day sections show the same totals twice.
+  local index=0 offset at
   while IFS= read -r file; do
-    jq --arg at "$stamp" '.updatedAt = $at | (.turns[] | .endedAt) = $at' "$file" >"$file.tmp"
+    offset=$(( index * 14 * 86400 ))
+    at=$(date -u -d "@$(( now - offset ))" +%Y-%m-%dT%H:%M:%S.000Z)
+    jq --arg at "$at" '.updatedAt = $at | (.turns[] | .endedAt) = $at' "$file" >"$file.tmp"
     mv "$file.tmp" "$file"
-  done < <(find "$work/grok-home/sessions" -name usage.json -type f)
+    index=$(( index + 1 ))
+  done < <(find "$work/grok-home/sessions" -name usage.json -type f | sort)
 }
 
 hide_plugins() {
